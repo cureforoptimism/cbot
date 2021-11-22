@@ -1,0 +1,2 @@
+tokens:
+  file: ${TOKEN_LOCATION:src/main/resources/tokens.properties}
