@@ -69,10 +69,12 @@ public class SellCommand implements CbotCommand {
                                     + " for $"
                                     + transaction.getAmount()
                                     + ". You have "
-                                    + transactionService.getToken(
-                                        message.getUserData().id().asLong(),
-                                        message.getGuildId().get().asLong(),
-                                        symbol)
+                                    + String.format(
+                                        "%.2f",
+                                        transactionService.getToken(
+                                            message.getUserData().id().asLong(),
+                                            message.getGuildId().get().asLong(),
+                                            symbol))
                                     + " "
                                     + symbol
                                     + " left.")))

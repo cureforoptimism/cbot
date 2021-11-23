@@ -5,14 +5,24 @@ import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
 import com.cureforoptimism.cbot.service.TransactionService;
 import com.cureforoptimism.cbot.service.UserService;
+import com.inamik.text.tables.GridTable;
+import com.inamik.text.tables.SimpleTable;
+import com.inamik.text.tables.grid.Border;
+import com.inamik.text.tables.grid.Util;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import java.util.Map;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+
+@Slf4j
 @Component
 @AllArgsConstructor
 public class MeCommand implements CbotCommand {
@@ -48,29 +58,34 @@ public class MeCommand implements CbotCommand {
       Map<String, Double> walletAmounts = wallet.getTokenAmounts();
       Map<String, Double> walletValues = wallet.getTokenValuesInUsd();
 
-      StringBuilder chanMessage = new StringBuilder();
+      SimpleTable output =
+          SimpleTable.of().nextRow().nextCell("TOKEN").nextCell("AMOUNT").nextCell("USD VALUE");
+
       Double totalValue = 0.0d;
       for (Map.Entry<String, Double> entry : walletAmounts.entrySet()) {
         totalValue += walletValues.get(entry.getKey());
-        chanMessage
-            .append(entry.getKey().toUpperCase())
-            .append(": ")
-            .append(entry.getValue())
-            .append(" ($")
-            .append(String.format("%.2f", walletValues.get(entry.getKey())))
-            .append(")\n");
+        output
+            .nextRow()
+            .nextCell(entry.getKey().toUpperCase())
+            .nextCell(String.format("%.5f", entry.getValue()))
+            .nextCell("$" + String.format("%.2f", walletValues.get(entry.getKey())));
       }
 
-      String response =
-          "Hey, "
-              + user.getUserName()
-              + "#"
-              + user.getDiscriminator()
-              + ". You currently have: "
-              + chanMessage
-              + "\nYour total USD value is: "
-              + totalValue;
-      return event.getMessage().getChannel().flatMap(channel -> channel.createMessage(response));
+      GridTable gridTable = output.toGrid();
+      gridTable = Border.of(Border.Chars.of('+', '-', '|')).apply(gridTable);
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      PrintStream printStream = new PrintStream(baos);
+      Util.print(gridTable, printStream);
+
+      String response;
+      response = baos.toString(StandardCharsets.UTF_8);
+
+      String finalResponse =
+          "```\n" + response + "\n```" + String.format("Total USD value: $%.2f", totalValue);
+      return event
+          .getMessage()
+          .getChannel()
+          .flatMap(channel -> channel.createMessage(finalResponse));
     }
 
     return event

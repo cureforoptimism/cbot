@@ -20,6 +20,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 
 	flatDir {
 		dirs 'libs'
@@ -28,6 +29,7 @@ repositories {
 
 dependencies {
 	implementation fileTree(dir: 'libs', includes: ['*.jar'])
+	implementation 'com.github.inamik.text.tables:inamik-text-tables:1.0-SNAPSHOT'
 	implementation 'com.squareup.retrofit2:retrofit:2.9.0'
 	implementation 'com.squareup.retrofit2:converter-jackson:2.9.0'
 	implementation "com.discord4j:discord4j-core:3.2.1"
