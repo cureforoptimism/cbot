@@ -1,6 +1,7 @@
 package com.cureforoptimism.cbot.discord.command;
 
 import com.cureforoptimism.cbot.domain.User;
+import com.cureforoptimism.cbot.service.TransactionService;
 import com.cureforoptimism.cbot.service.UserService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class MeCommand implements CbotCommand {
   private final UserService userService;
+  private final TransactionService transactionService;
 
   @Override
   public String getName() {
@@ -33,8 +35,10 @@ public class MeCommand implements CbotCommand {
             message.getUserData().id().asLong(), message.getGuildId().get().asLong());
     if (userOptional.isPresent()) {
       User user = userOptional.get();
+      Double usdValue = transactionService.getUsdValue(user.getDiscordId(), message.getGuildId().get().asLong());
+      String formattedValue = String.format("%.2f", usdValue);
 
-      String response = "Yeah, I know you, " + user.getUserName() + "#" + user.getDiscriminator();
+      String response = "Yeah, I know you, " + user.getUserName() + "#" + user.getDiscriminator() + ". Your current USD value is $" + formattedValue;
       return event.getMessage().getChannel().flatMap(channel -> channel.createMessage(response));
     }
 
