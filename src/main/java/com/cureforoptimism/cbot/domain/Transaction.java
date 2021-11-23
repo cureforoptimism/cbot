@@ -29,6 +29,9 @@ public class Transaction {
     @Getter
     Double amount;
 
+    @Getter
+    Double purchasePrice;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "create_date")

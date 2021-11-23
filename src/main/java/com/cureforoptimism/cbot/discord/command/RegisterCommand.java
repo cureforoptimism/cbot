@@ -68,6 +68,7 @@ public class RegisterCommand implements CbotCommand {
             transactionRepository.save(Transaction.builder()
                             .user(user)
                             .amount(Constants.DEFAULT_STARTING_USD)
+                            .purchasePrice(1.0d)
                             .symbol("USD")
                     .build());
 
