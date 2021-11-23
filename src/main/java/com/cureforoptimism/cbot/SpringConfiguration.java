@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SpringConfiguration {
-    @Bean
-    public CoinGeckoApiClient coinGeckoApiClient() {
-        return new CoinGeckoApiClientImpl();
-    }
+  @Bean
+  public CoinGeckoApiClient coinGeckoApiClient() {
+    return new CoinGeckoApiClientImpl();
+  }
 }

@@ -7,12 +7,11 @@ import com.cureforoptimism.cbot.service.TransactionService;
 import com.cureforoptimism.cbot.service.UserService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
 
 @Component
 @AllArgsConstructor
@@ -69,7 +68,8 @@ public class MeCommand implements CbotCommand {
               + user.getDiscriminator()
               + ". You currently have: "
               + chanMessage
-              + "\nYour total USD value is: " + totalValue;
+              + "\nYour total USD value is: "
+              + totalValue;
       return event.getMessage().getChannel().flatMap(channel -> channel.createMessage(response));
     }
 

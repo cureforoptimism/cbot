@@ -4,11 +4,10 @@ import com.cureforoptimism.cbot.domain.Transaction;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
+import java.util.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -32,17 +31,20 @@ public class TransactionService {
   }
 
   public Set<Transaction> getAllTransactions(Long userId, Long serverId) {
-    return transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
+    return transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(
+        userId, serverId);
   }
 
   public Map<String, Double> getAllTokenAmounts(Long userId, Long serverId) {
-    Set<Transaction> transactions = transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
+    Set<Transaction> transactions =
+        transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
     Wallet wallet = new Wallet(transactions, coinGeckoService);
     return wallet.getTokenAmounts();
   }
 
   public Map<String, Double> getAllTokenValues(Long userId, Long serverId) {
-    Set<Transaction> transactions = transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
+    Set<Transaction> transactions =
+        transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
     Wallet wallet = new Wallet(transactions, coinGeckoService);
     return wallet.getTokenValuesInUsd();
   }
@@ -63,22 +65,22 @@ public class TransactionService {
 
       // Deduct USD
       transactionRepository.save(
-              Transaction.builder()
-                      .user(user.get())
-                      .purchasePrice(1.0d)
-                      .amount(-purchasePrice)
-                      .symbol("usd")
-                      .build()
-      );
-
-      // Add coin
-      return Optional.of(transactionRepository.save(
           Transaction.builder()
               .user(user.get())
-              .purchasePrice(token)
-              .symbol(symbol.toLowerCase())
-              .amount(amount)
-              .build()));
+              .purchasePrice(1.0d)
+              .amount(-purchasePrice)
+              .symbol("usd")
+              .build());
+
+      // Add coin
+      return Optional.of(
+          transactionRepository.save(
+              Transaction.builder()
+                  .user(user.get())
+                  .purchasePrice(token)
+                  .symbol(symbol.toLowerCase())
+                  .amount(amount)
+                  .build()));
     }
 
     // This is ambiguous. Custom exceptions will be better.

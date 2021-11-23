@@ -1,7 +1,6 @@
 package com.cureforoptimism.cbot.domain;
 
 import com.cureforoptimism.cbot.service.CoinGeckoService;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;

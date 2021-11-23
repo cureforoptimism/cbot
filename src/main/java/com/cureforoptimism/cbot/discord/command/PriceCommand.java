@@ -10,27 +10,29 @@ import reactor.core.publisher.Mono;
 @Component
 @AllArgsConstructor
 public class PriceCommand implements CbotCommand {
-    final CoinGeckoService coinGeckoService;
+  final CoinGeckoService coinGeckoService;
 
-    @Override
-    public String getName() {
-        return "price";
+  @Override
+  public String getName() {
+    return "price";
+  }
+
+  @Override
+  public Mono<Message> handle(MessageCreateEvent event) {
+    Message message = event.getMessage();
+    String[] parts = message.getContent().split(" ");
+
+    // TODO: May as well do multiple token fetches
+    if (parts.length == 3) {
+      String symbol = parts[2].toLowerCase();
+      Double value = coinGeckoService.getCurrentPrice(symbol);
+      String displayValue = String.format("$%.6f", value);
+
+      return message
+          .getChannel()
+          .flatMap(channel -> channel.createMessage(symbol + ": " + displayValue));
     }
 
-    @Override
-    public Mono<Message> handle(MessageCreateEvent event) {
-        Message message = event.getMessage();
-        String[] parts = message.getContent().split(" ");
-
-        // TODO: May as well do multiple token fetches
-        if(parts.length == 3) {
-            String symbol = parts[2].toLowerCase();
-            Double value = coinGeckoService.getCurrentPrice(symbol);
-            String displayValue = String.format("$%.6f", value);
-
-            return message.getChannel().flatMap(channel -> channel.createMessage(symbol + ": " + displayValue));
-        }
-
-        return Mono.empty();
-    }
+    return Mono.empty();
+  }
 }

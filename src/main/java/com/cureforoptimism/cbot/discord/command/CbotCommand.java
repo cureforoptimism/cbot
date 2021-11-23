@@ -5,7 +5,7 @@ import discord4j.core.object.entity.Message;
 import reactor.core.publisher.Mono;
 
 public interface CbotCommand {
-    String getName();
+  String getName();
 
-    Mono<Message> handle(MessageCreateEvent event);
+  Mono<Message> handle(MessageCreateEvent event);
 }

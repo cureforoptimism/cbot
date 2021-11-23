@@ -3,13 +3,12 @@ package com.cureforoptimism.cbot.service;
 import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;
 import com.litesoftwares.coingecko.domain.Coins.CoinList;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 @Service
 @EnableScheduling
@@ -35,9 +34,9 @@ public class CoinGeckoService {
     List<CoinList> coinList = client.getCoinList();
 
     coinTickerToIdMap =
-            coinList.stream()
-                    .collect(
-                            Collectors.toMap(
-                                    CoinList::getSymbol, CoinList::getId, (existing, replacement) -> existing));
+        coinList.stream()
+            .collect(
+                Collectors.toMap(
+                    CoinList::getSymbol, CoinList::getId, (existing, replacement) -> existing));
   }
 }

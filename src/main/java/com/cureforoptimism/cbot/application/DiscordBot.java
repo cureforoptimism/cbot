@@ -28,10 +28,12 @@ public class DiscordBot implements ApplicationRunner {
   @Override
   @Transactional
   public void run(ApplicationArguments args) {
-      CbotCommandListener cbotCommandListener = new CbotCommandListener(context);
+    CbotCommandListener cbotCommandListener = new CbotCommandListener(context);
 
-      DiscordClient.create(tokenService.getDiscordToken())
-              .withGateway(gatewayClient ->
-                      gatewayClient.on(MessageCreateEvent.class, cbotCommandListener::handle)).block();
+    DiscordClient.create(tokenService.getDiscordToken())
+        .withGateway(
+            gatewayClient ->
+                gatewayClient.on(MessageCreateEvent.class, cbotCommandListener::handle))
+        .block();
   }
 }

@@ -19,65 +19,81 @@ import reactor.core.publisher.Mono;
 @Component
 @AllArgsConstructor
 public class RegisterCommand implements CbotCommand {
-    final UserRepository userRepository;
-    final ServerRepository serverRepository;
-    final TransactionRepository transactionRepository;
-    final TransactionService transactionService; // Well, this is awkward
+  final UserRepository userRepository;
+  final ServerRepository serverRepository;
+  final TransactionRepository transactionRepository;
+  final TransactionService transactionService; // Well, this is awkward
 
-    @Override
-    public String getName() {
-        return "register";
+  @Override
+  public String getName() {
+    return "register";
+  }
+
+  @Override
+  public Mono<Message> handle(MessageCreateEvent event) {
+    Message message = event.getMessage();
+
+    final var id = message.getUserData().id().asLong();
+
+    final var userOptional = userRepository.findByDiscordId(id);
+    if (userOptional.isEmpty()) {
+      Server server;
+
+      // If this is a DM or something, just ignore, for now.
+      if (message.getGuildId().isEmpty()) {
+        return Mono.empty();
+      }
+
+      final var serverId = message.getGuildId().get().asLong();
+      final var serverOptional = serverRepository.findByDiscordId(serverId);
+      if (serverOptional.isEmpty()) {
+        server = serverRepository.save(Server.builder().discordId(serverId).build());
+      } else {
+        server = serverOptional.get();
+      }
+
+      final var userName = message.getUserData().username();
+      final var discriminator = message.getUserData().discriminator();
+
+      final User user =
+          userRepository.save(
+              User.builder()
+                  .discordId(id)
+                  .userName(userName)
+                  .discriminator(discriminator)
+                  .server(server)
+                  .build());
+
+      // Initialize account with default value of USD
+      transactionRepository.save(
+          Transaction.builder()
+              .user(user)
+              .amount(Constants.DEFAULT_STARTING_USD)
+              .purchasePrice(1.0d)
+              .symbol("usd")
+              .build());
+
+      final Double usdValue = transactionService.getUsdValue(id, serverId);
+      final String formattedValue = String.format("$%.2f", usdValue);
+
+      return event
+          .getMessage()
+          .getChannel()
+          .flatMap(
+              channel ->
+                  channel.createMessage(
+                      "You're now registered with a starting balance of "
+                          + formattedValue
+                          + ", "
+                          + userName));
+    } else {
+      return event
+          .getMessage()
+          .getChannel()
+          .flatMap(
+              channel ->
+                  channel.createMessage(
+                      "You're already registered, " + userOptional.get().getUserName() + "!"));
     }
-
-    @Override
-    public Mono<Message> handle(MessageCreateEvent event) {
-        Message message = event.getMessage();
-
-        final var id = message.getUserData().id().asLong();
-
-        final var userOptional = userRepository.findByDiscordId(id);
-        if(userOptional.isEmpty()) {
-            Server server;
-
-            // If this is a DM or something, just ignore, for now.
-            if(message.getGuildId().isEmpty()) {
-                return Mono.empty();
-            }
-
-            final var serverId = message.getGuildId().get().asLong();
-            final var serverOptional = serverRepository.findByDiscordId(serverId);
-            if(serverOptional.isEmpty()) {
-                server = serverRepository.save(Server.builder()
-                                .discordId(serverId)
-                        .build());
-            } else {
-                server = serverOptional.get();
-            }
-
-            final var userName = message.getUserData().username();
-            final var discriminator = message.getUserData().discriminator();
-
-            final User user = userRepository.save(User.builder()
-                    .discordId(id)
-                    .userName(userName)
-                    .discriminator(discriminator)
-                    .server(server)
-                    .build());
-
-            // Initialize account with default value of USD
-            transactionRepository.save(Transaction.builder()
-                            .user(user)
-                            .amount(Constants.DEFAULT_STARTING_USD)
-                            .purchasePrice(1.0d)
-                            .symbol("usd")
-                    .build());
-
-            final Double usdValue = transactionService.getUsdValue(id, serverId);
-            final String formattedValue = String.format("$%.2f", usdValue);
-
-            return event.getMessage().getChannel().flatMap(channel -> channel.createMessage("You're now registered with a starting balance of " + formattedValue + ", " + userName));
-        } else {
-            return event.getMessage().getChannel().flatMap(channel -> channel.createMessage("You're already registered, " + userOptional.get().getUserName() + "!"));
-        }
-    }
+  }
 }
