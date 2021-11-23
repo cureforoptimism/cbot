@@ -1,6 +1,8 @@
 package com.cureforoptimism.cbot.discord.command;
 
 import com.cureforoptimism.cbot.domain.User;
+import com.cureforoptimism.cbot.domain.Wallet;
+import com.cureforoptimism.cbot.service.CoinGeckoService;
 import com.cureforoptimism.cbot.service.TransactionService;
 import com.cureforoptimism.cbot.service.UserService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -17,6 +19,7 @@ import java.util.Map;
 public class MeCommand implements CbotCommand {
   private final UserService userService;
   private final TransactionService transactionService;
+  private final CoinGeckoService coinGeckoService;
 
   @Override
   public String getName() {
@@ -38,14 +41,35 @@ public class MeCommand implements CbotCommand {
     if (userOptional.isPresent()) {
       User user = userOptional.get();
 
-      String chanMessage = "You have... ";
+      Wallet wallet =
+          new Wallet(
+              transactionService.getAllTransactions(
+                  user.getDiscordId(), message.getGuildId().get().asLong()),
+              coinGeckoService);
+      Map<String, Double> walletAmounts = wallet.getTokenAmounts();
+      Map<String, Double> walletValues = wallet.getTokenValuesInUsd();
+
+      StringBuilder chanMessage = new StringBuilder("You have... ");
       Double totalValue = 0.0d;
-      Map<String, Double> coinValues = transactionService.getAllTokenValues(user.getDiscordId(), message.getGuildId().get().asLong());
-      for(Map.Entry<String, Double> entry : coinValues.entrySet()) {
-        chanMessage += entry.getValue() + " " + entry.getKey() + ", ";
+      for (Map.Entry<String, Double> entry : walletAmounts.entrySet()) {
+        totalValue += walletValues.get(entry.getKey());
+        chanMessage
+            .append(entry.getKey().toUpperCase())
+            .append(": ")
+            .append(entry.getValue())
+            .append(" ($")
+            .append(String.format("%.2f", walletValues.get(entry.getKey())))
+            .append(")\n");
       }
 
-      String response = "Yeah, I know you, " + user.getUserName() + "#" + user.getDiscriminator() + ". You currently have: " + chanMessage;
+      String response =
+          "Hey, "
+              + user.getUserName()
+              + "#"
+              + user.getDiscriminator()
+              + ". You currently have: "
+              + chanMessage
+              + "\nYour total USD value is: " + totalValue;
       return event.getMessage().getChannel().flatMap(channel -> channel.createMessage(response));
     }
 

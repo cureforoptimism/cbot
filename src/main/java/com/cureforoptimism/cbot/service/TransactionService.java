@@ -2,6 +2,7 @@ package com.cureforoptimism.cbot.service;
 
 import com.cureforoptimism.cbot.domain.Transaction;
 import com.cureforoptimism.cbot.domain.User;
+import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,26 +31,20 @@ public class TransactionService {
     return usdValue;
   }
 
-  public Map<String, Double> getAllTokenValues(Long userId, Long serverId) {
-    Map<String, Double> values = new HashMap<>();
+  public Set<Transaction> getAllTransactions(Long userId, Long serverId) {
+    return transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
+  }
 
+  public Map<String, Double> getAllTokenAmounts(Long userId, Long serverId) {
     Set<Transaction> transactions = transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
-    for(Transaction tx : transactions) {
-      Double value = values.getOrDefault(tx.getSymbol().toLowerCase(), 0.0d);
+    Wallet wallet = new Wallet(transactions, coinGeckoService);
+    return wallet.getTokenAmounts();
+  }
 
-      Double tokenValue = 1.0d;
-      if (!tx.getSymbol().equalsIgnoreCase("usd")) {
-        tokenValue = coinGeckoService.getCurrentPrice(tx.getSymbol()) * tx.getAmount();
-      } else {
-        tokenValue = tx.getAmount();
-      }
-
-      value += tokenValue;
-
-      values.put(tx.getSymbol().toLowerCase(), value);
-    }
-
-    return values;
+  public Map<String, Double> getAllTokenValues(Long userId, Long serverId) {
+    Set<Transaction> transactions = transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
+    Wallet wallet = new Wallet(transactions, coinGeckoService);
+    return wallet.getTokenValuesInUsd();
   }
 
   // TODO: Throw custom exceptions on invalid/failed buys instead of just boolean

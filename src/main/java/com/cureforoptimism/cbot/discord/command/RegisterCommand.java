@@ -69,7 +69,7 @@ public class RegisterCommand implements CbotCommand {
                             .user(user)
                             .amount(Constants.DEFAULT_STARTING_USD)
                             .purchasePrice(1.0d)
-                            .symbol("USD")
+                            .symbol("usd")
                     .build());
 
             final Double usdValue = transactionService.getUsdValue(id, serverId);
