@@ -1,4 +1,4 @@
-package com.cureforoptimism.cbot.services;
+package com.cureforoptimism.cbot.service;
 
 import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;

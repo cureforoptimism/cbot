@@ -1,4 +1,4 @@
-package com.cureforoptimism.cbot.services;
+package com.cureforoptimism.cbot.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
