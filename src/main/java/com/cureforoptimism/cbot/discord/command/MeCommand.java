@@ -49,7 +49,7 @@ public class MeCommand implements CbotCommand {
       Map<String, Double> walletAmounts = wallet.getTokenAmounts();
       Map<String, Double> walletValues = wallet.getTokenValuesInUsd();
 
-      StringBuilder chanMessage = new StringBuilder("You have... ");
+      StringBuilder chanMessage = new StringBuilder();
       Double totalValue = 0.0d;
       for (Map.Entry<String, Double> entry : walletAmounts.entrySet()) {
         totalValue += walletValues.get(entry.getKey());
