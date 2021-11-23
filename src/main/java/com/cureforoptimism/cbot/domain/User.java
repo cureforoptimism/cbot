@@ -19,6 +19,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     Long id;
 
+    @Getter
     Long discordId;
 
     @Getter

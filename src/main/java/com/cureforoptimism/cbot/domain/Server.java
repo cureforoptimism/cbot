@@ -2,6 +2,7 @@ package com.cureforoptimism.cbot.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -18,6 +19,7 @@ public class Server {
 
     Long discordId;
 
+    @Getter
     @OneToMany(mappedBy = "server", cascade = CascadeType.ALL)
-    Set<User> user;
+    Set<User> users;
 }
