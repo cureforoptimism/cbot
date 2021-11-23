@@ -1,9 +1,6 @@
 package com.cureforoptimism.cbot.discord.command;
 
-import com.cureforoptimism.cbot.domain.User;
-import com.cureforoptimism.cbot.service.CoinGeckoService;
 import com.cureforoptimism.cbot.service.TransactionService;
-import com.cureforoptimism.cbot.service.UserService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import lombok.AllArgsConstructor;
@@ -14,9 +11,7 @@ import reactor.core.publisher.Mono;
 @Component
 @AllArgsConstructor
 public class SellCommand implements CbotCommand {
-  private final UserService userService;
   private final TransactionService transactionService;
-  private final CoinGeckoService coinGeckoService;
 
   @Override
   public String getName() {
@@ -32,13 +27,63 @@ public class SellCommand implements CbotCommand {
       return Mono.empty();
     }
 
-    final var userOptional =
-        userService.findByDiscordIdAndServerId(
-            message.getUserData().id().asLong(), message.getGuildId().get().asLong());
-    if (userOptional.isPresent()) {
-      User user = userOptional.get();
+    String[] parts = message.getContent().split(" ");
+    if (parts.length != 4) {
+      return Mono.empty();
     }
 
-    return Mono.empty();
+    String symbol = parts[2].toLowerCase().trim();
+    String amountStr = parts[3].toLowerCase().trim();
+    double amount;
+
+    try {
+      amount = Double.parseDouble(amountStr);
+    } catch (NumberFormatException ex) {
+      return event
+          .getMessage()
+          .getChannel()
+          .flatMap(
+              channel ->
+                  channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
+    }
+
+    final var tx =
+        transactionService.sell(
+            message.getUserData().id().asLong(),
+            message.getGuildId().get().asLong(),
+            symbol,
+            amount);
+
+    return tx.map(
+            transaction ->
+                event
+                    .getMessage()
+                    .getChannel()
+                    .flatMap(
+                        channel ->
+                            channel.createMessage(
+                                "You have sold "
+                                    + amount
+                                    + " of "
+                                    + symbol
+                                    + " for $"
+                                    + transaction.getAmount()
+                                    + ". You have "
+                                    + transactionService.getToken(
+                                        message.getUserData().id().asLong(),
+                                        message.getGuildId().get().asLong(),
+                                        symbol)
+                                    + " "
+                                    + symbol
+                                    + " left.")))
+        .orElseGet(
+            () ->
+                event
+                    .getMessage()
+                    .getChannel()
+                    .flatMap(
+                        channel ->
+                            channel.createMessage(
+                                "Failed to sell. I'll tell you why as soon as CFO makes the next commit.")));
   }
 }

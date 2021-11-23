@@ -4,7 +4,9 @@ import com.cureforoptimism.cbot.domain.Transaction;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,15 @@ public class TransactionService {
     return usdValue;
   }
 
+  public Double getToken(Long userId, Long serverId, String symbol) {
+    return transactionRepository
+        .findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId)
+        .stream()
+        .filter(tx -> tx.getSymbol().equalsIgnoreCase(symbol))
+        .mapToDouble(Transaction::getAmount)
+        .sum();
+  }
+
   public Set<Transaction> getAllTransactions(Long userId, Long serverId) {
     return transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(
         userId, serverId);
@@ -49,7 +60,43 @@ public class TransactionService {
     return wallet.getTokenValuesInUsd();
   }
 
-  // TODO: Throw custom exceptions on invalid/failed buys instead of just boolean
+  // TODO: Throw custom exceptions on invalid/failed sells
+  @Transactional
+  public Optional<Transaction> sell(Long userId, Long serverId, String symbol, Double amount) {
+    Optional<User> user = userService.findByDiscordIdAndServerId(userId, serverId);
+    if (user.isEmpty()) {
+      return Optional.empty();
+    }
+
+    final var token = coinGeckoService.getCurrentPrice(symbol);
+    final var tokensAvailable = getToken(userId, serverId, symbol);
+    if (tokensAvailable < amount) {
+      return Optional.empty();
+    }
+
+    final var sellPrice = token * amount;
+
+    // Deduct token
+    transactionRepository.save(
+        Transaction.builder()
+            .user(user.get())
+            .purchasePrice(token)
+            .amount(-amount)
+            .symbol(symbol)
+            .build());
+
+    // Add USD
+    return Optional.of(
+        transactionRepository.save(
+            Transaction.builder()
+                .user(user.get())
+                .purchasePrice(1.0d)
+                .amount(sellPrice)
+                .symbol("usd")
+                .build()));
+  }
+
+  // TODO: Throw custom exceptions on invalid/failed buys
   @Transactional
   public Optional<Transaction> buy(Long userId, Long serverId, String symbol, Double amount) {
     Optional<User> user = userService.findByDiscordIdAndServerId(userId, serverId);

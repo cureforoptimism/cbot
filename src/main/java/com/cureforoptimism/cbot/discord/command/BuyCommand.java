@@ -1,6 +1,5 @@
 package com.cureforoptimism.cbot.discord.command;
 
-import com.cureforoptimism.cbot.service.CoinGeckoService;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
@@ -11,7 +10,6 @@ import reactor.core.publisher.Mono;
 @Component
 @AllArgsConstructor
 public class BuyCommand implements CbotCommand {
-  private final CoinGeckoService coinGeckoService;
   private final TransactionService transactionService;
 
   @Override
@@ -55,7 +53,7 @@ public class BuyCommand implements CbotCommand {
             amount);
     if (tx.isPresent()) {
       String purchasePrice = String.format("%.6f", tx.get().getPurchasePrice());
-      Double total = tx.get().getPurchasePrice() * amount;
+      double total = tx.get().getPurchasePrice() * amount;
       return event
           .getMessage()
           .getChannel()
