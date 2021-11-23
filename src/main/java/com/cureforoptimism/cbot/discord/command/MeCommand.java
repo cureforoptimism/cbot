@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @Component
 @AllArgsConstructor
 public class MeCommand implements CbotCommand {
@@ -35,10 +37,15 @@ public class MeCommand implements CbotCommand {
             message.getUserData().id().asLong(), message.getGuildId().get().asLong());
     if (userOptional.isPresent()) {
       User user = userOptional.get();
-      Double usdValue = transactionService.getUsdValue(user.getDiscordId(), message.getGuildId().get().asLong());
-      String formattedValue = String.format("%.2f", usdValue);
 
-      String response = "Yeah, I know you, " + user.getUserName() + "#" + user.getDiscriminator() + ". Your current USD value is $" + formattedValue;
+      String chanMessage = "You have... ";
+      Double totalValue = 0.0d;
+      Map<String, Double> coinValues = transactionService.getAllTokenValues(user.getDiscordId(), message.getGuildId().get().asLong());
+      for(Map.Entry<String, Double> entry : coinValues.entrySet()) {
+        chanMessage += entry.getValue() + " " + entry.getKey() + ", ";
+      }
+
+      String response = "Yeah, I know you, " + user.getUserName() + "#" + user.getDiscriminator() + ". You currently have: " + chanMessage;
       return event.getMessage().getChannel().flatMap(channel -> channel.createMessage(response));
     }
 
