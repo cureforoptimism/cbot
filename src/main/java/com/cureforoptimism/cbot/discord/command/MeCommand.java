@@ -41,8 +41,6 @@ public class MeCommand implements CbotCommand {
 
     final var userOptional = userService.findByDiscordIdAndServerId(userId, guildId);
     if (userOptional.isPresent()) {
-      User user = userOptional.get();
-
       Wallet wallet =
           new Wallet(transactionService.getAllTransactions(userId, guildId), coinGeckoService);
       Map<String, BigDecimal> walletAmounts = wallet.getTokenAmounts();

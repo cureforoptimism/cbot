@@ -5,13 +5,14 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class Wallet {
   private final Map<String, BigDecimal> wallet;
   private final CoinGeckoService coinGeckoService;
 
   public Wallet(Set<Transaction> transactions, CoinGeckoService coinGeckoService) {
-    wallet = new HashMap<>();
+    wallet = new TreeMap<>();
 
     for (Transaction transaction : transactions) {
       if (!wallet.containsKey(transaction.getSymbol())) {
