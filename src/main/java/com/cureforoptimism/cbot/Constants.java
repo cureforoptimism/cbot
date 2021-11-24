@@ -4,4 +4,5 @@ import java.math.BigDecimal;
 
 public class Constants {
   public static final BigDecimal DEFAULT_STARTING_USD = new BigDecimal("20000.0");
+  public static long COIN_GECKO_CACHE_EXPIRY = 30 * 100; // 30 seconds
 }

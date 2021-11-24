@@ -61,8 +61,12 @@ public class MeCommand implements CbotCommand {
       SimpleTable output =
           SimpleTable.of().nextRow().nextCell("TOKEN").nextCell("AMOUNT").nextCell("USD VALUE");
 
-      BigDecimal totalValue = new BigDecimal("0.0");
+      BigDecimal totalValue = BigDecimal.ONE;
       for (Map.Entry<String, BigDecimal> entry : walletAmounts.entrySet()) {
+        if (entry.getValue().compareTo(BigDecimal.ZERO) == 0) {
+          continue;
+        }
+
         totalValue = walletValues.get(entry.getKey()).add(totalValue);
         output
             .nextRow()
