@@ -1,5 +1,6 @@
 package com.cureforoptimism.cbot.discord.command;
 
+import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
@@ -46,44 +47,46 @@ public class BuyCommand implements CbotCommand {
                   channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
     }
 
-    final var tx =
-        transactionService.buy(
-            message.getUserData().id().asLong(),
-            message.getGuildId().get().asLong(),
-            symbol,
-            amount);
-    if (tx.isPresent()) {
-      String purchasePrice = String.format("%.6f", tx.get().getPurchasePrice());
-      BigDecimal total = tx.get().getPurchasePrice().multiply(amount);
+    try {
+      final var tx =
+          transactionService.buy(
+              message.getUserData().id().asLong(),
+              message.getGuildId().get().asLong(),
+              symbol,
+              amount);
+
+      if (tx.isPresent()) {
+        String purchasePrice = String.format("%.6f", tx.get().getPurchasePrice());
+        BigDecimal total = tx.get().getPurchasePrice().multiply(amount);
+        return event
+            .getMessage()
+            .getChannel()
+            .flatMap(
+                channel ->
+                    channel.createMessage(
+                        "You have bought "
+                            + amount
+                            + " of "
+                            + symbol
+                            + " for "
+                            + purchasePrice
+                            + " per token, totalling "
+                            + total
+                            + " ($"
+                            + String.format("%.2f", tx.get().getFees())
+                            + " fees). You have "
+                            + transactionService.getUsdValue(
+                                message.getUserData().id().asLong(),
+                                message.getGuildId().get().asLong())
+                            + " USD left."));
+      }
+    } catch (TransactionException ex) {
       return event
           .getMessage()
           .getChannel()
-          .flatMap(
-              channel ->
-                  channel.createMessage(
-                      "You have bought "
-                          + amount
-                          + " of "
-                          + symbol
-                          + " for "
-                          + purchasePrice
-                          + " per token, totalling "
-                          + total
-                          + " ($"
-                          + String.format("%.2f", tx.get().getFees())
-                          + " fees). You have "
-                          + transactionService.getUsdValue(
-                              message.getUserData().id().asLong(),
-                              message.getGuildId().get().asLong())
-                          + " USD left."));
-    } else {
-      return event
-          .getMessage()
-          .getChannel()
-          .flatMap(
-              channel ->
-                  channel.createMessage(
-                      "Failed to purchase. I'll tell you why as soon as CFO makes the next commit."));
+          .flatMap(channel -> channel.createMessage("Failed to buy: " + ex.getMessage()));
     }
+
+    return Mono.empty();
   }
 }

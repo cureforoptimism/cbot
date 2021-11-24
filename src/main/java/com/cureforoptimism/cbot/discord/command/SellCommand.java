@@ -1,5 +1,6 @@
 package com.cureforoptimism.cbot.discord.command;
 
+import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
@@ -48,47 +49,48 @@ public class SellCommand implements CbotCommand {
                   channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
     }
 
-    final var tx =
-        transactionService.sell(
-            message.getUserData().id().asLong(),
-            message.getGuildId().get().asLong(),
-            symbol,
-            amount);
+    try {
+      final var tx =
+          transactionService.sell(
+              message.getUserData().id().asLong(),
+              message.getGuildId().get().asLong(),
+              symbol,
+              amount);
 
-    return tx.map(
-            transaction ->
-                event
-                    .getMessage()
-                    .getChannel()
-                    .flatMap(
-                        channel ->
-                            channel.createMessage(
-                                "You have sold "
-                                    + amount
-                                    + " of "
-                                    + symbol
-                                    + " for $"
-                                    + transaction.getAmount()
-                                    + " (and paid $"
-                                    + String.format("%.2f", tx.get().getFees())
-                                    + " fees). You have "
-                                    + String.format(
-                                        "%.2f",
-                                        transactionService.getToken(
-                                            message.getUserData().id().asLong(),
-                                            message.getGuildId().get().asLong(),
-                                            symbol))
-                                    + " "
-                                    + symbol
-                                    + " left.")))
-        .orElseGet(
-            () ->
-                event
-                    .getMessage()
-                    .getChannel()
-                    .flatMap(
-                        channel ->
-                            channel.createMessage(
-                                "Failed to sell. I'll tell you why as soon as CFO makes the next commit.")));
+      if (tx.isEmpty()) {
+        // Should not happen
+        return Mono.empty();
+      }
+
+      return event
+          .getMessage()
+          .getChannel()
+          .flatMap(
+              channel ->
+                  channel.createMessage(
+                      "You have sold "
+                          + amount
+                          + " of "
+                          + symbol
+                          + " for $"
+                          + tx.get().getAmount()
+                          + " (and paid $"
+                          + String.format("%.2f", tx.get().getFees())
+                          + " fees). You have "
+                          + String.format(
+                              "%.2f",
+                              transactionService.getToken(
+                                  message.getUserData().id().asLong(),
+                                  message.getGuildId().get().asLong(),
+                                  symbol))
+                          + " "
+                          + symbol
+                          + " left."));
+    } catch (TransactionException ex) {
+      return event
+          .getMessage()
+          .getChannel()
+          .flatMap(channel -> channel.createMessage("Failed to sell: " + ex.getMessage()));
+    }
   }
 }

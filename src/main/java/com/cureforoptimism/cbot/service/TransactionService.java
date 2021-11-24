@@ -5,6 +5,8 @@ import com.cureforoptimism.cbot.domain.Transaction;
 import com.cureforoptimism.cbot.domain.TransactionType;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
+import com.cureforoptimism.cbot.domain.exceptions.InsufficientFundsException;
+import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -63,9 +65,9 @@ public class TransactionService {
     return wallet.getTokenValuesInUsd();
   }
 
-  // TODO: Throw custom exceptions on invalid/failed sells
   @Transactional
-  public Optional<Transaction> sell(Long userId, Long serverId, String symbol, BigDecimal amount) {
+  public Optional<Transaction> sell(Long userId, Long serverId, String symbol, BigDecimal amount)
+      throws TransactionException {
     Optional<User> user = userService.findByDiscordIdAndServerId(userId, serverId);
     if (user.isEmpty()) {
       return Optional.empty();
@@ -74,7 +76,7 @@ public class TransactionService {
     final var token = coinGeckoService.getCurrentPrice(symbol);
     final var tokensAvailable = getToken(userId, serverId, symbol);
     if (tokensAvailable.compareTo(amount) < 0) {
-      return Optional.empty();
+      throw new InsufficientFundsException();
     }
 
     final var sellPrice = token.multiply(amount);
@@ -113,9 +115,9 @@ public class TransactionService {
                 .build()));
   }
 
-  // TODO: Throw custom exceptions on invalid/failed buys
   @Transactional
-  public Optional<Transaction> buy(Long userId, Long serverId, String symbol, BigDecimal amount) {
+  public Optional<Transaction> buy(Long userId, Long serverId, String symbol, BigDecimal amount)
+      throws TransactionException {
     Optional<User> user = userService.findByDiscordIdAndServerId(userId, serverId);
     if (user.isEmpty()) {
       return Optional.empty();
@@ -159,9 +161,8 @@ public class TransactionService {
                   .fees(fees)
                   .transactionType(TransactionType.BUY)
                   .build()));
+    } else {
+      throw new InsufficientFundsException();
     }
-
-    // This is ambiguous. Custom exceptions will be better.
-    return Optional.empty();
   }
 }
