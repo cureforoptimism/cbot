@@ -1,5 +1,6 @@
 package com.cureforoptimism.cbot.discord.command;
 
+import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
@@ -48,7 +49,12 @@ public class MeCommand implements CbotCommand {
       Map<String, BigDecimal> walletValues = wallet.getTokenValuesInUsd();
 
       SimpleTable output =
-          SimpleTable.of().nextRow().nextCell("TOKEN").nextCell("AMOUNT").nextCell("USD VALUE");
+          SimpleTable.of()
+              .nextRow()
+              .nextCell("TOKEN")
+              .nextCell("MKT PRICE")
+              .nextCell("AMOUNT")
+              .nextCell("USD VALUE");
 
       BigDecimal totalValue = BigDecimal.ONE;
       for (Map.Entry<String, BigDecimal> entry : walletAmounts.entrySet()) {
@@ -57,10 +63,15 @@ public class MeCommand implements CbotCommand {
         }
 
         totalValue = walletValues.get(entry.getKey()).add(totalValue);
+        final var marketPrice =
+            entry.getKey().equalsIgnoreCase("usd")
+                ? new BigDecimal("1.0")
+                : coinGeckoService.getCurrentPrice(entry.getKey().toLowerCase());
         output
             .nextRow()
             .nextCell(entry.getKey().toUpperCase())
-            .nextCell(String.format("%.5f", entry.getValue()))
+            .nextCell(Constants.DECIMAL_FMT_DEFAULT.format(marketPrice))
+            .nextCell(Constants.DECIMAL_FMT_DEFAULT.format(entry.getValue()))
             .nextCell("$" + String.format("%.2f", walletValues.get(entry.getKey())));
       }
 

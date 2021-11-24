@@ -24,9 +24,20 @@ public class Transaction {
   User user;
 
   @Getter String symbol;
-  @Getter BigDecimal amount;
-  @Getter BigDecimal purchasePrice;
-  @Getter @Transient BigDecimal fees;
+
+  @Column(precision = 19, scale = 10)
+  @Getter
+  BigDecimal amount;
+
+  @Column(precision = 19, scale = 10)
+  @Getter
+  BigDecimal purchasePrice;
+
+  @Column(precision = 19, scale = 10)
+  @Getter
+  @Transient
+  BigDecimal fees;
+
   @Getter TransactionType transactionType;
 
   @CreationTimestamp

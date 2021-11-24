@@ -1,5 +1,6 @@
 package com.cureforoptimism.cbot.discord.command;
 
+import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -51,7 +52,6 @@ public class BuyCommand implements CbotCommand {
       final var tx = transactionService.buy(userId, guildId, symbol, amount);
 
       if (tx.isPresent()) {
-        String purchasePrice = String.format("%.6f", tx.get().getPurchasePrice());
         BigDecimal total = tx.get().getPurchasePrice().multiply(amount);
         return event
             .getMessage()
@@ -63,16 +63,17 @@ public class BuyCommand implements CbotCommand {
                             + amount
                             + " of "
                             + symbol
-                            + " for "
-                            + purchasePrice
-                            + " per token, totalling "
-                            + total
+                            + " for $"
+                            + Constants.DECIMAL_FMT_DEFAULT.format(tx.get().getPurchasePrice())
+                            + " per token, totalling $"
+                            + Constants.DECIMAL_FMT_TWO_PRECISION.format(total)
                             + " ($"
-                            + String.format("%.2f", tx.get().getFees())
-                            + " fees). You have "
-                            + transactionService.getUsdValue(
-                                message.getUserData().id().asLong(),
-                                message.getGuildId().get().asLong())
+                            + Constants.DECIMAL_FMT_TWO_PRECISION.format(tx.get().getFees())
+                            + " fees). You have $"
+                            + Constants.DECIMAL_FMT_TWO_PRECISION.format(
+                                transactionService.getUsdValue(
+                                    message.getUserData().id().asLong(),
+                                    message.getGuildId().get().asLong()))
                             + " USD left."));
       }
     } catch (TransactionException ex) {
