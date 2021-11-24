@@ -2,6 +2,7 @@ package com.cureforoptimism.cbot.service;
 
 import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.domain.Transaction;
+import com.cureforoptimism.cbot.domain.TransactionType;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
@@ -86,6 +87,7 @@ public class TransactionService {
             .purchasePrice(token)
             .amount(amount.negate())
             .symbol(symbol)
+            .transactionType(TransactionType.SELL)
             .build());
 
     // Deduct fees
@@ -95,6 +97,7 @@ public class TransactionService {
             .purchasePrice(token)
             .amount(fees.negate())
             .symbol(symbol)
+            .transactionType(TransactionType.FEE)
             .build());
 
     // Add USD
@@ -106,6 +109,7 @@ public class TransactionService {
                 .amount(sellPrice)
                 .fees(fees)
                 .symbol("usd")
+                .transactionType(TransactionType.BUY)
                 .build()));
   }
 
@@ -131,6 +135,7 @@ public class TransactionService {
               .purchasePrice(BigDecimal.ONE)
               .amount(purchasePrice.negate())
               .symbol("usd")
+              .transactionType(TransactionType.SELL)
               .build());
 
       // Deduct fees
@@ -140,6 +145,7 @@ public class TransactionService {
               .purchasePrice(BigDecimal.ONE)
               .amount(fees.negate())
               .symbol("usd")
+              .transactionType(TransactionType.FEE)
               .build());
 
       // Add coin
@@ -151,6 +157,7 @@ public class TransactionService {
                   .symbol(symbol.toLowerCase())
                   .amount(amount)
                   .fees(fees)
+                  .transactionType(TransactionType.BUY)
                   .build()));
     }
 

@@ -3,6 +3,7 @@ package com.cureforoptimism.cbot.discord.command;
 import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.domain.Server;
 import com.cureforoptimism.cbot.domain.Transaction;
+import com.cureforoptimism.cbot.domain.TransactionType;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.repository.ServerRepository;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
@@ -71,6 +72,7 @@ public class RegisterCommand implements CbotCommand {
               .user(user)
               .amount(Constants.DEFAULT_STARTING_USD)
               .purchasePrice(BigDecimal.ONE)
+              .transactionType(TransactionType.INITIAL)
               .symbol("usd")
               .build());
 
