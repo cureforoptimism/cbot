@@ -11,4 +11,4 @@ spring:
     password: password
 
 tokens:
-  file: ${TOKEN_LOCATION:src/main/resources/tokens.properties}
+  file: ${TOKEN_LOCATION:tokens.properties}

@@ -1,12 +1,12 @@
 package com.cureforoptimism.cbot.service;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -17,7 +17,9 @@ public class TokenService {
   private String file;
 
   public String getDiscordToken() {
-    try (InputStream input = new FileInputStream(file)) {
+    ClassPathResource classPathResource = new ClassPathResource(file);
+
+    try (InputStream input = classPathResource.getInputStream()) {
       Properties properties = new Properties();
       properties.load(input);
       return properties.get("discord_access_token").toString();
