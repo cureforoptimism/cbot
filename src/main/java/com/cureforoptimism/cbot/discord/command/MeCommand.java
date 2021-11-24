@@ -19,7 +19,6 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -36,25 +35,15 @@ public class MeCommand implements CbotCommand {
   }
 
   @Override
-  @Transactional
-  public Mono<Message> handle(MessageCreateEvent event) {
+  public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
 
-    if (message.getGuildId().isEmpty()) {
-      return Mono.empty();
-    }
-
-    final var userOptional =
-        userService.findByDiscordIdAndServerId(
-            message.getUserData().id().asLong(), message.getGuildId().get().asLong());
+    final var userOptional = userService.findByDiscordIdAndServerId(userId, guildId);
     if (userOptional.isPresent()) {
       User user = userOptional.get();
 
       Wallet wallet =
-          new Wallet(
-              transactionService.getAllTransactions(
-                  user.getDiscordId(), message.getGuildId().get().asLong()),
-              coinGeckoService);
+          new Wallet(transactionService.getAllTransactions(userId, guildId), coinGeckoService);
       Map<String, BigDecimal> walletAmounts = wallet.getTokenAmounts();
       Map<String, BigDecimal> walletValues = wallet.getTokenValuesInUsd();
 

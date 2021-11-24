@@ -19,7 +19,7 @@ public class PriceCommand implements CbotCommand {
   }
 
   @Override
-  public Mono<Message> handle(MessageCreateEvent event) {
+  public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
     String[] parts = message.getContent().split(" ");
 

@@ -22,7 +22,7 @@ public class SellCommand implements CbotCommand {
 
   @Override
   @Transactional
-  public Mono<Message> handle(MessageCreateEvent event) {
+  public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
 
     if (message.getGuildId().isEmpty()) {
@@ -50,12 +50,7 @@ public class SellCommand implements CbotCommand {
     }
 
     try {
-      final var tx =
-          transactionService.sell(
-              message.getUserData().id().asLong(),
-              message.getGuildId().get().asLong(),
-              symbol,
-              amount);
+      final var tx = transactionService.sell(userId, guildId, symbol, amount);
 
       if (tx.isEmpty()) {
         // Should not happen
@@ -78,11 +73,7 @@ public class SellCommand implements CbotCommand {
                           + String.format("%.2f", tx.get().getFees())
                           + " fees). You have "
                           + String.format(
-                              "%.2f",
-                              transactionService.getToken(
-                                  message.getUserData().id().asLong(),
-                                  message.getGuildId().get().asLong(),
-                                  symbol))
+                              "%.2f", transactionService.getToken(userId, guildId, symbol))
                           + " "
                           + symbol
                           + " left."));

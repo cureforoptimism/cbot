@@ -32,24 +32,16 @@ public class RegisterCommand implements CbotCommand {
   }
 
   @Override
-  public Mono<Message> handle(MessageCreateEvent event) {
+  public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
 
-    final var id = message.getUserData().id().asLong();
-
-    final var userOptional = userRepository.findByDiscordId(id);
+    final var userOptional = userRepository.findByDiscordId(userId);
     if (userOptional.isEmpty()) {
       Server server;
 
-      // If this is a DM or something, just ignore, for now.
-      if (message.getGuildId().isEmpty()) {
-        return Mono.empty();
-      }
-
-      final var serverId = message.getGuildId().get().asLong();
-      final var serverOptional = serverRepository.findByDiscordId(serverId);
+      final var serverOptional = serverRepository.findByDiscordId(guildId);
       if (serverOptional.isEmpty()) {
-        server = serverRepository.save(Server.builder().discordId(serverId).build());
+        server = serverRepository.save(Server.builder().discordId(guildId).build());
       } else {
         server = serverOptional.get();
       }
@@ -60,7 +52,7 @@ public class RegisterCommand implements CbotCommand {
       final User user =
           userRepository.save(
               User.builder()
-                  .discordId(id)
+                  .discordId(userId)
                   .userName(userName)
                   .discriminator(discriminator)
                   .server(server)
@@ -76,7 +68,7 @@ public class RegisterCommand implements CbotCommand {
               .symbol("usd")
               .build());
 
-      final BigDecimal usdValue = transactionService.getUsdValue(id, serverId);
+      final BigDecimal usdValue = transactionService.getUsdValue(userId, guildId);
       final String formattedValue = String.format("$%.2f", usdValue);
 
       return event

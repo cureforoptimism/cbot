@@ -29,7 +29,17 @@ public class CbotCommandListener {
       return Flux.fromIterable(commands)
           .filter(command -> command.getName().equals(commandName))
           .next()
-          .flatMap(command -> command.handle(event));
+          .flatMap(
+              command -> {
+                // Verify that this is a message in a server and not a DM (for now)
+                Message msg = event.getMessage();
+                if (msg.getGuildId().isEmpty()) {
+                  return Mono.empty();
+                }
+
+                return command.handle(
+                    event, msg.getUserData().id().asLong(), msg.getGuildId().get().asLong());
+              });
     }
 
     return Mono.empty();

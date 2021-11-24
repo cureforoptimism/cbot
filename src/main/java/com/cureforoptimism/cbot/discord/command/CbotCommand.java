@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 public interface CbotCommand {
   String getName();
 
-  Mono<Message> handle(MessageCreateEvent event);
+  Mono<Message> handle(MessageCreateEvent event, long userId, long guildId);
 }

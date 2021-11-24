@@ -20,7 +20,7 @@ public class BuyCommand implements CbotCommand {
   }
 
   @Override
-  public Mono<Message> handle(MessageCreateEvent event) {
+  public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
     if (message.getGuildId().isEmpty()) {
       return Mono.empty();
@@ -48,12 +48,7 @@ public class BuyCommand implements CbotCommand {
     }
 
     try {
-      final var tx =
-          transactionService.buy(
-              message.getUserData().id().asLong(),
-              message.getGuildId().get().asLong(),
-              symbol,
-              amount);
+      final var tx = transactionService.buy(userId, guildId, symbol, amount);
 
       if (tx.isPresent()) {
         String purchasePrice = String.format("%.6f", tx.get().getPurchasePrice());
