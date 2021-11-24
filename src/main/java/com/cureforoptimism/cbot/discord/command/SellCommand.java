@@ -69,7 +69,9 @@ public class SellCommand implements CbotCommand {
                                     + symbol
                                     + " for $"
                                     + transaction.getAmount()
-                                    + ". You have "
+                                    + " (and paid $"
+                                    + String.format("%.2f", tx.get().getFees())
+                                    + " fees). You have "
                                     + String.format(
                                         "%.2f",
                                         transactionService.getToken(

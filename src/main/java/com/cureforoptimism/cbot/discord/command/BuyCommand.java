@@ -69,7 +69,9 @@ public class BuyCommand implements CbotCommand {
                           + purchasePrice
                           + " per token, totalling "
                           + total
-                          + ". You have "
+                          + " ($"
+                          + String.format("%.2f", tx.get().getFees())
+                          + " fees). You have "
                           + transactionService.getUsdValue(
                               message.getUserData().id().asLong(),
                               message.getGuildId().get().asLong())

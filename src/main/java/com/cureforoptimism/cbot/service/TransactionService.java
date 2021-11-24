@@ -1,5 +1,6 @@
 package com.cureforoptimism.cbot.service;
 
+import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.domain.Transaction;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
@@ -76,6 +77,7 @@ public class TransactionService {
     }
 
     final var sellPrice = token.multiply(amount);
+    final BigDecimal fees = token.multiply(amount).multiply(Constants.BUY_SELL_FEE_PCT);
 
     // Deduct token
     transactionRepository.save(
@@ -86,6 +88,15 @@ public class TransactionService {
             .symbol(symbol)
             .build());
 
+    // Deduct fees
+    transactionRepository.save(
+        Transaction.builder()
+            .user(user.get())
+            .purchasePrice(token)
+            .amount(fees.negate())
+            .symbol(symbol)
+            .build());
+
     // Add USD
     return Optional.of(
         transactionRepository.save(
@@ -93,6 +104,7 @@ public class TransactionService {
                 .user(user.get())
                 .purchasePrice(BigDecimal.ONE)
                 .amount(sellPrice)
+                .fees(fees)
                 .symbol("usd")
                 .build()));
   }
@@ -106,9 +118,10 @@ public class TransactionService {
     }
 
     final var token = coinGeckoService.getCurrentPrice(symbol);
-    // TODO: Fees, etc
+    BigDecimal fees = token.multiply(amount).multiply(Constants.BUY_SELL_FEE_PCT);
+
     BigDecimal usdInWallet = getUsdValue(userId, serverId);
-    if ((token.multiply(amount)).compareTo(usdInWallet) <= 0) {
+    if ((token.multiply(amount).add(fees)).compareTo(usdInWallet) <= 0) {
       BigDecimal purchasePrice = token.multiply(amount);
 
       // Deduct USD
@@ -120,6 +133,15 @@ public class TransactionService {
               .symbol("usd")
               .build());
 
+      // Deduct fees
+      transactionRepository.save(
+          Transaction.builder()
+              .user(user.get())
+              .purchasePrice(BigDecimal.ONE)
+              .amount(fees.negate())
+              .symbol("usd")
+              .build());
+
       // Add coin
       return Optional.of(
           transactionRepository.save(
@@ -128,6 +150,7 @@ public class TransactionService {
                   .purchasePrice(token)
                   .symbol(symbol.toLowerCase())
                   .amount(amount)
+                  .fees(fees)
                   .build()));
     }
 

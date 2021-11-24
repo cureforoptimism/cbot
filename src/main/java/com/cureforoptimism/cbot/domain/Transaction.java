@@ -29,6 +29,8 @@ public class Transaction {
 
   @Getter BigDecimal purchasePrice;
 
+  @Getter @Transient BigDecimal fees;
+
   @CreationTimestamp
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "create_date")
