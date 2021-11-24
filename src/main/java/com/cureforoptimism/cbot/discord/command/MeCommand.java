@@ -11,16 +11,16 @@ import com.inamik.text.tables.grid.Border;
 import com.inamik.text.tables.grid.Util;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -55,15 +55,15 @@ public class MeCommand implements CbotCommand {
               transactionService.getAllTransactions(
                   user.getDiscordId(), message.getGuildId().get().asLong()),
               coinGeckoService);
-      Map<String, Double> walletAmounts = wallet.getTokenAmounts();
-      Map<String, Double> walletValues = wallet.getTokenValuesInUsd();
+      Map<String, BigDecimal> walletAmounts = wallet.getTokenAmounts();
+      Map<String, BigDecimal> walletValues = wallet.getTokenValuesInUsd();
 
       SimpleTable output =
           SimpleTable.of().nextRow().nextCell("TOKEN").nextCell("AMOUNT").nextCell("USD VALUE");
 
-      Double totalValue = 0.0d;
-      for (Map.Entry<String, Double> entry : walletAmounts.entrySet()) {
-        totalValue += walletValues.get(entry.getKey());
+      BigDecimal totalValue = new BigDecimal("0.0");
+      for (Map.Entry<String, BigDecimal> entry : walletAmounts.entrySet()) {
+        totalValue = walletValues.get(entry.getKey()).add(totalValue);
         output
             .nextRow()
             .nextCell(entry.getKey().toUpperCase())

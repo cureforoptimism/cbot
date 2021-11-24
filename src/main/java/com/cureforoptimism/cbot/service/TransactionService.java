@@ -4,6 +4,7 @@ import com.cureforoptimism.cbot.domain.Transaction;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -18,27 +19,27 @@ public class TransactionService {
   private final UserService userService;
   private final CoinGeckoService coinGeckoService;
 
-  public Double getUsdValue(Long userId, Long serverId) {
+  public BigDecimal getUsdValue(Long userId, Long serverId) {
     // TODO: Use current token values, mapped to USD. Not just USD.
     final var transactions =
         transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
-    Double usdValue = 0.0d;
+    BigDecimal usdValue = BigDecimal.ZERO;
     for (Transaction transaction : transactions) {
       if (transaction.getSymbol().equalsIgnoreCase("usd")) {
-        usdValue += transaction.getAmount();
+        usdValue = transaction.getAmount().add(usdValue);
       }
     }
 
     return usdValue;
   }
 
-  public Double getToken(Long userId, Long serverId, String symbol) {
+  public BigDecimal getToken(Long userId, Long serverId, String symbol) {
     return transactionRepository
         .findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId)
         .stream()
         .filter(tx -> tx.getSymbol().equalsIgnoreCase(symbol))
-        .mapToDouble(Transaction::getAmount)
-        .sum();
+        .map(Transaction::getAmount)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
   public Set<Transaction> getAllTransactions(Long userId, Long serverId) {
@@ -46,14 +47,14 @@ public class TransactionService {
         userId, serverId);
   }
 
-  public Map<String, Double> getAllTokenAmounts(Long userId, Long serverId) {
+  public Map<String, BigDecimal> getAllTokenAmounts(Long userId, Long serverId) {
     Set<Transaction> transactions =
         transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
     Wallet wallet = new Wallet(transactions, coinGeckoService);
     return wallet.getTokenAmounts();
   }
 
-  public Map<String, Double> getAllTokenValues(Long userId, Long serverId) {
+  public Map<String, BigDecimal> getAllTokenValues(Long userId, Long serverId) {
     Set<Transaction> transactions =
         transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(userId, serverId);
     Wallet wallet = new Wallet(transactions, coinGeckoService);
@@ -62,7 +63,7 @@ public class TransactionService {
 
   // TODO: Throw custom exceptions on invalid/failed sells
   @Transactional
-  public Optional<Transaction> sell(Long userId, Long serverId, String symbol, Double amount) {
+  public Optional<Transaction> sell(Long userId, Long serverId, String symbol, BigDecimal amount) {
     Optional<User> user = userService.findByDiscordIdAndServerId(userId, serverId);
     if (user.isEmpty()) {
       return Optional.empty();
@@ -70,18 +71,18 @@ public class TransactionService {
 
     final var token = coinGeckoService.getCurrentPrice(symbol);
     final var tokensAvailable = getToken(userId, serverId, symbol);
-    if (tokensAvailable < amount) {
+    if (tokensAvailable.compareTo(amount) < 0) {
       return Optional.empty();
     }
 
-    final var sellPrice = token * amount;
+    final var sellPrice = token.multiply(amount);
 
     // Deduct token
     transactionRepository.save(
         Transaction.builder()
             .user(user.get())
             .purchasePrice(token)
-            .amount(-amount)
+            .amount(amount.negate())
             .symbol(symbol)
             .build());
 
@@ -90,7 +91,7 @@ public class TransactionService {
         transactionRepository.save(
             Transaction.builder()
                 .user(user.get())
-                .purchasePrice(1.0d)
+                .purchasePrice(BigDecimal.ONE)
                 .amount(sellPrice)
                 .symbol("usd")
                 .build()));
@@ -98,7 +99,7 @@ public class TransactionService {
 
   // TODO: Throw custom exceptions on invalid/failed buys
   @Transactional
-  public Optional<Transaction> buy(Long userId, Long serverId, String symbol, Double amount) {
+  public Optional<Transaction> buy(Long userId, Long serverId, String symbol, BigDecimal amount) {
     Optional<User> user = userService.findByDiscordIdAndServerId(userId, serverId);
     if (user.isEmpty()) {
       return Optional.empty();
@@ -106,16 +107,16 @@ public class TransactionService {
 
     final var token = coinGeckoService.getCurrentPrice(symbol);
     // TODO: Fees, etc
-    Double usdInWallet = getUsdValue(userId, serverId);
-    if ((token.longValue() * amount) <= usdInWallet) {
-      Double purchasePrice = token * amount;
+    BigDecimal usdInWallet = getUsdValue(userId, serverId);
+    if ((token.multiply(amount)).compareTo(usdInWallet) <= 0) {
+      BigDecimal purchasePrice = token.multiply(amount);
 
       // Deduct USD
       transactionRepository.save(
           Transaction.builder()
               .user(user.get())
-              .purchasePrice(1.0d)
-              .amount(-purchasePrice)
+              .purchasePrice(BigDecimal.ONE)
+              .amount(purchasePrice.negate())
               .symbol("usd")
               .build());
 

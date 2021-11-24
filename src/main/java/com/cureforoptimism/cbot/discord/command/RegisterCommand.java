@@ -10,6 +10,7 @@ import com.cureforoptimism.cbot.repository.UserRepository;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -69,11 +70,11 @@ public class RegisterCommand implements CbotCommand {
           Transaction.builder()
               .user(user)
               .amount(Constants.DEFAULT_STARTING_USD)
-              .purchasePrice(1.0d)
+              .purchasePrice(BigDecimal.ONE)
               .symbol("usd")
               .build());
 
-      final Double usdValue = transactionService.getUsdValue(id, serverId);
+      final BigDecimal usdValue = transactionService.getUsdValue(id, serverId);
       final String formattedValue = String.format("$%.2f", usdValue);
 
       return event

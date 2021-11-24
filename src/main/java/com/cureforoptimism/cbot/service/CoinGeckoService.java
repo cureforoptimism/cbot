@@ -3,6 +3,7 @@ package com.cureforoptimism.cbot.service;
 import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;
 import com.litesoftwares.coingecko.domain.Coins.CoinList;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,11 +23,12 @@ public class CoinGeckoService {
     refreshTokenList();
   }
 
-  public Double getCurrentPrice(String symbol) {
-    return client
-        .getPrice(coinTickerToIdMap.get(symbol), Currency.USD)
-        .get(coinTickerToIdMap.get(symbol))
-        .get("usd");
+  public BigDecimal getCurrentPrice(String symbol) {
+    return BigDecimal.valueOf(
+        client
+            .getPrice(coinTickerToIdMap.get(symbol), Currency.USD)
+            .get(coinTickerToIdMap.get(symbol))
+            .get("usd"));
   }
 
   @Scheduled(fixedDelay = 60000)

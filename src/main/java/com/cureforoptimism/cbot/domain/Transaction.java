@@ -1,5 +1,6 @@
 package com.cureforoptimism.cbot.domain;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,9 +25,9 @@ public class Transaction {
 
   @Getter String symbol;
 
-  @Getter Double amount;
+  @Getter BigDecimal amount;
 
-  @Getter Double purchasePrice;
+  @Getter BigDecimal purchasePrice;
 
   @CreationTimestamp
   @Temporal(TemporalType.TIMESTAMP)

@@ -3,6 +3,7 @@ package com.cureforoptimism.cbot.discord.command;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -25,7 +26,7 @@ public class PriceCommand implements CbotCommand {
     // TODO: May as well do multiple token fetches
     if (parts.length == 3) {
       String symbol = parts[2].toLowerCase();
-      Double value = coinGeckoService.getCurrentPrice(symbol);
+      BigDecimal value = coinGeckoService.getCurrentPrice(symbol);
       String displayValue = String.format("$%.6f", value);
 
       return message

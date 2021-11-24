@@ -3,6 +3,7 @@ package com.cureforoptimism.cbot.discord.command;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -32,10 +33,10 @@ public class BuyCommand implements CbotCommand {
 
     String symbol = parts[2].toLowerCase().trim();
     String amountStr = parts[3].toLowerCase().trim();
-    double amount;
+    BigDecimal amount;
 
     try {
-      amount = Double.parseDouble(amountStr);
+      amount = new BigDecimal(amountStr);
     } catch (NumberFormatException ex) {
       return event
           .getMessage()
@@ -53,7 +54,7 @@ public class BuyCommand implements CbotCommand {
             amount);
     if (tx.isPresent()) {
       String purchasePrice = String.format("%.6f", tx.get().getPurchasePrice());
-      double total = tx.get().getPurchasePrice() * amount;
+      BigDecimal total = tx.get().getPurchasePrice().multiply(amount);
       return event
           .getMessage()
           .getChannel()
