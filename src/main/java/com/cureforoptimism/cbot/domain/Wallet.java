@@ -2,10 +2,7 @@ package com.cureforoptimism.cbot.domain;
 
 import com.cureforoptimism.cbot.service.CoinGeckoService;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 public class Wallet {
   private final Map<String, BigDecimal> wallet;

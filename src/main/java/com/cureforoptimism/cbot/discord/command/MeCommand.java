@@ -1,7 +1,6 @@
 package com.cureforoptimism.cbot.discord.command;
 
 import com.cureforoptimism.cbot.Constants;
-import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
 import com.cureforoptimism.cbot.service.TransactionService;
@@ -10,6 +9,7 @@ import com.inamik.text.tables.GridTable;
 import com.inamik.text.tables.SimpleTable;
 import com.inamik.text.tables.grid.Border;
 import com.inamik.text.tables.grid.Util;
+import com.inamik.text.tables.line.HorizontalCenter;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import java.io.ByteArrayOutputStream;
@@ -52,7 +52,8 @@ public class MeCommand implements CbotCommand {
               .nextCell("TOKEN")
               .nextCell("MKT PRICE")
               .nextCell("AMOUNT")
-              .nextCell("USD VALUE");
+              .nextCell("USD VALUE")
+              .nextCell("AVG BUY $");
 
       BigDecimal totalValue = BigDecimal.ONE;
       for (Map.Entry<String, BigDecimal> entry : walletAmounts.entrySet()) {
@@ -68,9 +69,13 @@ public class MeCommand implements CbotCommand {
         output
             .nextRow()
             .nextCell(entry.getKey().toUpperCase())
-            .nextCell(Constants.DECIMAL_FMT_DEFAULT.format(marketPrice))
+            .nextCell("$" + Constants.DECIMAL_FMT_DEFAULT.format(marketPrice))
             .nextCell(Constants.DECIMAL_FMT_DEFAULT.format(entry.getValue()))
-            .nextCell("$" + String.format("%.2f", walletValues.get(entry.getKey())));
+            .nextCell("$" + String.format("%.2f", walletValues.get(entry.getKey())))
+            .nextCell(
+                "$"
+                    + Constants.DECIMAL_FMT_TWO_PRECISION.format(
+                        transactionService.getAverageBuyPrice(userId, guildId, entry.getKey())));
       }
 
       GridTable gridTable = output.toGrid();

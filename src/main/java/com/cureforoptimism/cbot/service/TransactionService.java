@@ -9,6 +9,7 @@ import com.cureforoptimism.cbot.domain.exceptions.InsufficientFundsException;
 import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,6 +50,27 @@ public class TransactionService {
   public Set<Transaction> getAllTransactions(Long userId, Long serverId) {
     return transactionRepository.findByUser_DiscordIdEqualsAndUser_Server_DiscordId(
         userId, serverId);
+  }
+
+  public BigDecimal getAverageBuyPrice(Long userId, Long serverId, String symbol) {
+    if (symbol.equalsIgnoreCase("usd")) {
+      return BigDecimal.ONE;
+    }
+
+    Set<Transaction> transactions =
+        transactionRepository
+            .findByUser_DiscordIdAndUser_Server_DiscordIdAndSymbolIgnoreCaseAndTransactionType(
+                userId, serverId, symbol, TransactionType.BUY);
+
+    if (transactions.isEmpty()) {
+      return BigDecimal.ZERO;
+    }
+
+    BigDecimal sum =
+        transactions.stream()
+            .map(Transaction::getPurchasePrice)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    return sum.divide(new BigDecimal(transactions.size()), RoundingMode.FLOOR);
   }
 
   public Map<String, BigDecimal> getAllTokenAmounts(Long userId, Long serverId) {
