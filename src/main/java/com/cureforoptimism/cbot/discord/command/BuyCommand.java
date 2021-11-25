@@ -21,6 +21,11 @@ public class BuyCommand implements CbotCommand {
   }
 
   @Override
+  public String getDescription() {
+    return "Command to buy tokens using USD. Usage: <token> <amount>. Example: `cbot buy eth 1.2`";
+  }
+
+  @Override
   public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
     if (message.getGuildId().isEmpty()) {

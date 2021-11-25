@@ -9,7 +9,6 @@ import com.inamik.text.tables.GridTable;
 import com.inamik.text.tables.SimpleTable;
 import com.inamik.text.tables.grid.Border;
 import com.inamik.text.tables.grid.Util;
-import com.inamik.text.tables.line.HorizontalCenter;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import java.io.ByteArrayOutputStream;
@@ -36,6 +35,11 @@ public class MeCommand implements CbotCommand {
   }
 
   @Override
+  public String getDescription() {
+    return "Shows list of your current coins/usd and statistics";
+  }
+
+  @Override
   public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
 
@@ -55,7 +59,7 @@ public class MeCommand implements CbotCommand {
               .nextCell("USD VALUE")
               .nextCell("AVG BUY $");
 
-      BigDecimal totalValue = BigDecimal.ONE;
+      BigDecimal totalValue = BigDecimal.ZERO;
       for (Map.Entry<String, BigDecimal> entry : walletAmounts.entrySet()) {
         if (entry.getValue().compareTo(BigDecimal.ZERO) == 0) {
           continue;

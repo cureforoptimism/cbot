@@ -21,14 +21,14 @@ public class SellCommand implements CbotCommand {
   }
 
   @Override
+  public String getDescription() {
+    return "Command to sell tokens to USD. Usage: <token> <amount>. Example: `cbot sell eth 1.2`";
+  }
+
+  @Override
   @Transactional
   public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
-
-    if (message.getGuildId().isEmpty()) {
-      return Mono.empty();
-    }
-
     String[] parts = message.getContent().split(" ");
     if (parts.length != 4) {
       return Mono.empty();

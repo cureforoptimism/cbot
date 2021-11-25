@@ -19,6 +19,11 @@ public class PriceCommand implements CbotCommand {
   }
 
   @Override
+  public String getDescription() {
+    return "Gets current token value in USD. Usage: <token>. Example: `cbot price eth`";
+  }
+
+  @Override
   public Mono<Message> handle(MessageCreateEvent event, long userId, long guildId) {
     Message message = event.getMessage();
     String[] parts = message.getContent().split(" ");
