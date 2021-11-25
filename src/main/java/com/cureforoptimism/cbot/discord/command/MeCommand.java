@@ -1,5 +1,7 @@
 package com.cureforoptimism.cbot.discord.command;
 
+import static com.inamik.text.tables.Cell.Functions.RIGHT_ALIGN;
+
 import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
@@ -20,9 +22,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-
-import static com.inamik.text.tables.Cell.Functions.LEFT_ALIGN;
-import static com.inamik.text.tables.Cell.Functions.RIGHT_ALIGN;
 
 @Slf4j
 @Component
@@ -76,13 +75,18 @@ public class MeCommand implements CbotCommand {
         output
             .nextRow()
             .nextCell(entry.getKey().toUpperCase())
-            .nextCell("$" + Constants.DECIMAL_FMT_DEFAULT.format(marketPrice)).applyToCell(RIGHT_ALIGN.withWidth(12))
-            .nextCell(Constants.DECIMAL_FMT_DEFAULT.format(entry.getValue())).applyToCell(RIGHT_ALIGN.withWidth(16))
-            .nextCell("$" + Constants.DECIMAL_FMT_TWO_PRECISION.format(walletValues.get(entry.getKey()))).applyToCell(RIGHT_ALIGN.withWidth(14))
+            .nextCell("$" + Constants.DECIMAL_FMT_DEFAULT.format(marketPrice))
+            .applyToCell(RIGHT_ALIGN.withWidth(12))
+            .nextCell(Constants.DECIMAL_FMT_DEFAULT.format(entry.getValue()))
+            .applyToCell(RIGHT_ALIGN.withWidth(16))
+            .nextCell(
+                "$" + Constants.DECIMAL_FMT_TWO_PRECISION.format(walletValues.get(entry.getKey())))
+            .applyToCell(RIGHT_ALIGN.withWidth(14))
             .nextCell(
                 "$"
                     + Constants.DECIMAL_FMT_TWO_PRECISION.format(
-                        transactionService.getAverageBuyPrice(userId, guildId, entry.getKey()))).applyToCell(RIGHT_ALIGN.withWidth(12));
+                        transactionService.getAverageBuyPrice(userId, guildId, entry.getKey())))
+            .applyToCell(RIGHT_ALIGN.withWidth(12));
       }
 
       GridTable gridTable = output.toGrid();

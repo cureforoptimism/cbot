@@ -47,15 +47,14 @@ public class LeaderboardCommand implements CbotCommand {
     Set<User> users = userService.findByServerId(guildId);
 
     final Map<User, Wallet> wallets = new ConcurrentHashMap<>();
-    users.parallelStream()
-        .forEach(
-            u -> {
-              Wallet wallet =
-                  new Wallet(
-                      transactionService.getAllTransactions(u.getDiscordId(), guildId),
-                      coinGeckoService);
-              wallets.put(u, wallet);
-            });
+    users.forEach(
+        u -> {
+          Wallet wallet =
+              new Wallet(
+                  transactionService.getAllTransactions(u.getDiscordId(), guildId),
+                  coinGeckoService);
+          wallets.put(u, wallet);
+        });
 
     Map<String, BigDecimal> unsorted = new TreeMap<>();
     for (Map.Entry<User, Wallet> entry : wallets.entrySet()) {

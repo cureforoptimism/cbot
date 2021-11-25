@@ -52,6 +52,7 @@ public class TransactionService {
         userId, serverId);
   }
 
+  // TODO: This is not accurate. It needs to account for X coins at Y price instead of number of transactions. Fix. Maybe write a unit test, because seriously.
   public BigDecimal getAverageBuyPrice(Long userId, Long serverId, String symbol) {
     if (symbol.equalsIgnoreCase("usd")) {
       return BigDecimal.ONE;
