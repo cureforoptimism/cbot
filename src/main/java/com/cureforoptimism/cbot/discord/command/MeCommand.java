@@ -68,7 +68,7 @@ public class MeCommand implements CbotCommand {
         totalValue = walletValues.get(entry.getKey()).add(totalValue);
         final var marketPrice =
             entry.getKey().equalsIgnoreCase("usd")
-                ? new BigDecimal("1.0")
+                ? BigDecimal.ONE
                 : coinGeckoService.getCurrentPrice(entry.getKey().toLowerCase());
         output
             .nextRow()
