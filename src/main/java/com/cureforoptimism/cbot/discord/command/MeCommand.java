@@ -99,7 +99,14 @@ public class MeCommand implements CbotCommand {
       response = baos.toString(StandardCharsets.UTF_8);
 
       String finalResponse =
-          "```\n" + response + "\n```" + String.format("Total USD value: $%.2f", totalValue);
+          "```\n"
+              + response
+              + "\n```"
+              + String.format(
+                  "Total USD value: $%s. $%s paid in fees.",
+                  Constants.DECIMAL_FMT_TWO_PRECISION.format(totalValue),
+                  Constants.DECIMAL_FMT_TWO_PRECISION.format(
+                      transactionService.getFees(userId, guildId)));
       return event
           .getMessage()
           .getChannel()

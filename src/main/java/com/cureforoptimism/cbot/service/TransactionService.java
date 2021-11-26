@@ -90,6 +90,20 @@ public class TransactionService {
     return wallet.getTokenValuesInUsd();
   }
 
+  public BigDecimal getFees(Long userId, long serverId) {
+    Set<Transaction> transactions =
+        transactionRepository
+            .findByUser_DiscordIdAndUser_Server_DiscordIdAndSymbolIgnoreCaseAndTransactionType(
+                userId, serverId, "usd", TransactionType.FEE);
+
+    BigDecimal fees = BigDecimal.ZERO;
+    for (Transaction transaction : transactions) {
+      fees = fees.add(transaction.getAmount().negate());
+    }
+
+    return fees;
+  }
+
   @Transactional
   public Optional<Transaction> sell(Long userId, Long serverId, String symbol, BigDecimal amount)
       throws TransactionException {
