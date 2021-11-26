@@ -4,11 +4,12 @@ import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
 
 @Component
 @AllArgsConstructor
@@ -22,7 +23,7 @@ public class SellCommand implements CbotCommand {
 
   @Override
   public String getDescription() {
-    return "Command to sell tokens to USD. Usage: <token> <amount>. Example: `cbot sell eth 1.2`";
+    return "Command to sell tokens to USD. Usage: <token> <amount>, or <amount> <token>. Example: `cbot sell eth 1.2` or `!cbot sell 1.2 eth`";
   }
 
   @Override
@@ -41,12 +42,20 @@ public class SellCommand implements CbotCommand {
     try {
       amount = new BigDecimal(amountStr);
     } catch (NumberFormatException ex) {
-      return event
-          .getMessage()
-          .getChannel()
-          .flatMap(
-              channel ->
-                  channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
+      // OK, let's allow either syntax...
+      try {
+        symbol = parts[3].toLowerCase().trim();
+        amountStr = parts[2].toLowerCase().trim();
+
+        amount = new BigDecimal(amountStr);
+      } catch (NumberFormatException ex1) {
+        return event
+                .getMessage()
+                .getChannel()
+                .flatMap(
+                        channel ->
+                                channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
+      }
     }
 
     try {
@@ -57,6 +66,8 @@ public class SellCommand implements CbotCommand {
         return Mono.empty();
       }
 
+      BigDecimal finalAmount = amount;
+      String finalSymbol = symbol;
       return event
           .getMessage()
           .getChannel()
@@ -64,18 +75,18 @@ public class SellCommand implements CbotCommand {
               channel ->
                   channel.createMessage(
                       "You have sold "
-                          + amount
+                          + finalAmount
                           + " of "
-                          + symbol
+                          + finalSymbol
                           + " for $"
                           + tx.get().getAmount()
                           + " (and paid $"
                           + String.format("%.2f", tx.get().getFees())
                           + " fees). You have "
                           + String.format(
-                              "%.2f", transactionService.getToken(userId, guildId, symbol))
+                              "%.2f", transactionService.getToken(userId, guildId, finalSymbol))
                           + " "
-                          + symbol
+                          + finalSymbol
                           + " left."));
     } catch (TransactionException ex) {
       return event
