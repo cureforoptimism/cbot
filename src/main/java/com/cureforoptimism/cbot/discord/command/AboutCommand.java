@@ -44,7 +44,7 @@ public class AboutCommand implements CbotCommand {
       final CoinFullData coinFullData = coinGeckoService.getFullCoinData(symbol);
       final String description =
           "$"
-              + coinFullData.getTickers().get(0).getLast()
+              + coinGeckoService.getReliableTicker(coinFullData.getTickers()).getLast()
               + "\n24h "
               + Constants.DECIMAL_FMT_TWO_PRECISION.format(
                   coinFullData.getMarketData().getPriceChangePercentage24h())

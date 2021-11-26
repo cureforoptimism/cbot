@@ -97,7 +97,7 @@ public class CoinGeckoService {
           CoinFullData coinFullData = client.getCoinById(collision);
 
           if (coinFullData.getCoingeckoRank() < highRank && !coinFullData.getTickers().isEmpty()) {
-            highTicker = coinFullData.getTickers().get(0); // Use first ticker
+            highTicker = getReliableTicker(coinFullData.getTickers()); // Use first ticker
           }
         }
 
@@ -112,6 +112,22 @@ public class CoinGeckoService {
         coinTickerToIdMap.put(symbol, resolved.get().getTicker());
       }
     }
+  }
+
+  public Ticker getReliableTicker(List<Ticker> tickers) {
+    // Prioritize trust score
+    Ticker bestTicker = tickers.get(0);
+
+    // TODO: This would work better as a stream but it's 2:09AM
+    for (Ticker ticker : tickers) {
+      if (!ticker.getTrustScore().isEmpty() && ticker.getTarget().equalsIgnoreCase("usd")) {
+        if (ticker.getTrustScore().equalsIgnoreCase("green")) {
+          return ticker;
+        }
+      }
+    }
+
+    return bestTicker;
   }
 
   // We really don't need to refresh this often
