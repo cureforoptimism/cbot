@@ -52,6 +52,7 @@ public class CoinGeckoService {
     BigDecimal value;
   }
 
+  @Retryable(value = CoinGeckoApiException.class)
   public CoinFullData getFullCoinData(String symbol) {
     resolveCollisions(symbol);
 
