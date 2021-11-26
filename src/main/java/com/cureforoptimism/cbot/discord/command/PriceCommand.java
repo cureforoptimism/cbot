@@ -46,17 +46,17 @@ public class PriceCommand implements CbotCommand {
       final String description =
           "$"
               + coinFullData.getTickers().get(0).getLast()
-              + "```\n24h - "
+              + "\n24h "
               + Constants.DECIMAL_FMT_TWO_PRECISION.format(
-                  coinFullData.getMarketData().getPriceChange24h())
+                  coinFullData.getMarketData().getPriceChangePercentage24h())
               + "% ($"
               + Constants.DECIMAL_FMT_TWO_PRECISION.format(
                   coinFullData.getMarketData().getPriceChange24h())
               + ")"
-              + "\n7d  - "
+              + "\n7d  "
               + Constants.DECIMAL_FMT_TWO_PRECISION.format(
                   coinFullData.getMarketData().getPriceChangePercentage7d())
-              + "%```";
+              + "%";
       return message
           .getChannel()
           .flatMap(
