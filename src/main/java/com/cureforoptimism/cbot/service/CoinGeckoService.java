@@ -8,12 +8,6 @@ import com.litesoftwares.coingecko.constant.Currency;
 import com.litesoftwares.coingecko.domain.Coins.CoinFullData;
 import com.litesoftwares.coingecko.domain.Coins.CoinList;
 import com.litesoftwares.coingecko.domain.Shared.Ticker;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,6 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j

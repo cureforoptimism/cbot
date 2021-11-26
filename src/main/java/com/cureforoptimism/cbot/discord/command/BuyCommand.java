@@ -54,11 +54,11 @@ public class BuyCommand implements CbotCommand {
         amount = new BigDecimal(amountStr);
       } catch (NumberFormatException ex1) {
         return event
-                .getMessage()
-                .getChannel()
-                .flatMap(
-                        channel ->
-                                channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
+            .getMessage()
+            .getChannel()
+            .flatMap(
+                channel ->
+                    channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
       }
     }
 

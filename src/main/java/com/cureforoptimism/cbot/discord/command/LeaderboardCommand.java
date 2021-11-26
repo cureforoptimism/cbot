@@ -11,14 +11,13 @@ import com.cureforoptimism.cbot.service.UserService;
 import com.inamik.text.tables.SimpleTable;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
-
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 @Component
 @AllArgsConstructor
