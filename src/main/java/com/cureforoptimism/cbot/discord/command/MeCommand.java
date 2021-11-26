@@ -1,5 +1,7 @@
 package com.cureforoptimism.cbot.discord.command;
 
+import static com.inamik.text.tables.Cell.Functions.RIGHT_ALIGN;
+
 import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.Utilities;
 import com.cureforoptimism.cbot.domain.Wallet;
@@ -9,15 +11,12 @@ import com.cureforoptimism.cbot.service.UserService;
 import com.inamik.text.tables.SimpleTable;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import java.math.BigDecimal;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-
-import java.math.BigDecimal;
-import java.util.Map;
-
-import static com.inamik.text.tables.Cell.Functions.RIGHT_ALIGN;
 
 @Slf4j
 @Component
