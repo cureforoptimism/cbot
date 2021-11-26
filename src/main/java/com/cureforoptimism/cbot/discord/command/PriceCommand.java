@@ -1,5 +1,6 @@
 package com.cureforoptimism.cbot.discord.command;
 
+import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
@@ -30,13 +31,13 @@ public class PriceCommand implements CbotCommand {
 
     // TODO: May as well do multiple token fetches
     if (parts.length == 3) {
-      String symbol = parts[2].toLowerCase();
+      String symbol = parts[2];
       BigDecimal value = coinGeckoService.getCurrentPrice(symbol);
-      String displayValue = String.format("$%.6f", value);
+      String displayValue = Constants.DECIMAL_FMT_DEFAULT.format(value);
 
       return message
           .getChannel()
-          .flatMap(channel -> channel.createMessage(symbol + ": " + displayValue));
+          .flatMap(channel -> channel.createMessage(symbol.toUpperCase() + ": " + displayValue));
     }
 
     return Mono.empty();
