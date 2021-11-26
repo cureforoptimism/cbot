@@ -2,17 +2,26 @@ package com.cureforoptimism.cbot.discord.command;
 
 import com.cureforoptimism.cbot.Constants;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
+import com.litesoftwares.coingecko.domain.Coins.CoinFullData;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import java.math.BigDecimal;
-import lombok.AllArgsConstructor;
+import discord4j.core.spec.EmbedCreateSpec;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Component
-@AllArgsConstructor
 public class PriceCommand implements CbotCommand {
+  final Document.OutputSettings outputSettings;
   final CoinGeckoService coinGeckoService;
+
+  public PriceCommand(CoinGeckoService coinGeckoService) {
+    this.coinGeckoService = coinGeckoService;
+    this.outputSettings = new Document.OutputSettings();
+    outputSettings.prettyPrint(false);
+  }
 
   @Override
   public String getName() {
@@ -32,12 +41,42 @@ public class PriceCommand implements CbotCommand {
     // TODO: May as well do multiple token fetches
     if (parts.length == 3) {
       String symbol = parts[2];
-      BigDecimal value = coinGeckoService.getCurrentPrice(symbol);
-      String displayValue = Constants.DECIMAL_FMT_DEFAULT.format(value);
 
+      final CoinFullData coinFullData = coinGeckoService.getFullCoinData(symbol);
+      final String description =
+          "$"
+              + coinFullData.getTickers().get(0).getLast()
+              + "```\n24h - "
+              + Constants.DECIMAL_FMT_TWO_PRECISION.format(
+                  coinFullData.getMarketData().getPriceChange24h())
+              + "% ($"
+              + Constants.DECIMAL_FMT_TWO_PRECISION.format(
+                  coinFullData.getMarketData().getPriceChange24h())
+              + ")"
+              + "\n7d  - "
+              + Constants.DECIMAL_FMT_TWO_PRECISION.format(
+                  coinFullData.getMarketData().getPriceChangePercentage7d())
+              + "%```";
       return message
           .getChannel()
-          .flatMap(channel -> channel.createMessage(symbol.toUpperCase() + ": " + displayValue));
+          .flatMap(
+              channel ->
+                  channel.createMessage(
+                      EmbedCreateSpec.builder()
+                          .author(
+                              coinFullData.getName()
+                                  + " - Rank #"
+                                  + coinFullData.getMarketData().getMarketCapRank(),
+                              null,
+                              coinFullData.getImage().getSmall())
+                          .title(description)
+                          .description(
+                              Jsoup.clean(
+                                  coinFullData.getDescription().get("en"),
+                                  "",
+                                  Safelist.none(),
+                                  outputSettings))
+                          .build()));
     }
 
     return Mono.empty();

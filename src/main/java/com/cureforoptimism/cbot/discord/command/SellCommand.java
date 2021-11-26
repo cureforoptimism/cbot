@@ -4,12 +4,11 @@ import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
-import java.math.BigDecimal;
 
 @Component
 @AllArgsConstructor
@@ -50,11 +49,11 @@ public class SellCommand implements CbotCommand {
         amount = new BigDecimal(amountStr);
       } catch (NumberFormatException ex1) {
         return event
-                .getMessage()
-                .getChannel()
-                .flatMap(
-                        channel ->
-                                channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
+            .getMessage()
+            .getChannel()
+            .flatMap(
+                channel ->
+                    channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
       }
     }
 

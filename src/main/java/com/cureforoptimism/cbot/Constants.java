@@ -9,4 +9,5 @@ public class Constants {
   public static final BigDecimal BUY_SELL_FEE_PCT = new BigDecimal("0.0035");
   public static final DecimalFormat DECIMAL_FMT_DEFAULT = new DecimalFormat("#,##0.00####");
   public static final DecimalFormat DECIMAL_FMT_TWO_PRECISION = new DecimalFormat("#,##0.00");
+  public static final String ME = "Cbot Elizondo Mountain Dew Camacho";
 }

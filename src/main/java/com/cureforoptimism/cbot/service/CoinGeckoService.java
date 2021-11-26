@@ -8,6 +8,12 @@ import com.litesoftwares.coingecko.constant.Currency;
 import com.litesoftwares.coingecko.domain.Coins.CoinFullData;
 import com.litesoftwares.coingecko.domain.Coins.CoinList;
 import com.litesoftwares.coingecko.domain.Shared.Ticker;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,11 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -49,6 +50,12 @@ public class CoinGeckoService {
     BigDecimal value;
   }
 
+  public CoinFullData getFullCoinData(String symbol) {
+    resolveCollisions(symbol);
+
+    return client.getCoinById(coinTickerToIdMap.get(symbol));
+  }
+
   public BigDecimal getCurrentPrice(String symbol) {
     symbol = symbol.toLowerCase();
 
@@ -59,6 +66,21 @@ public class CoinGeckoService {
       }
     }
 
+    resolveCollisions(symbol);
+
+    BigDecimal value =
+        BigDecimal.valueOf(
+            client
+                .getPrice(coinTickerToIdMap.get(symbol), Currency.USD)
+                .get(coinTickerToIdMap.get(symbol))
+                .get("usd"));
+
+    cache.put(symbol, new CacheEntry(new Date(), value));
+
+    return value;
+  }
+
+  private void resolveCollisions(String symbol) {
     // Need to resolve the collision; use ticker with highest market cap
     if (collisions.containsKey(symbol)) {
       final var resolved = symbolToTickerCacheRepository.findById(symbol);
@@ -85,17 +107,6 @@ public class CoinGeckoService {
         coinTickerToIdMap.put(symbol, resolved.get().getTicker());
       }
     }
-
-    BigDecimal value =
-        BigDecimal.valueOf(
-            client
-                .getPrice(coinTickerToIdMap.get(symbol), Currency.USD)
-                .get(coinTickerToIdMap.get(symbol))
-                .get("usd"));
-
-    cache.put(symbol, new CacheEntry(new Date(), value));
-
-    return value;
   }
 
   // We really don't need to refresh this often
