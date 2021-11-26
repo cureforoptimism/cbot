@@ -5,10 +5,11 @@ import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.service.TransactionService;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
 
 @Component
 @AllArgsConstructor
@@ -22,7 +23,7 @@ public class BuyCommand implements CbotCommand {
 
   @Override
   public String getDescription() {
-    return "Command to buy tokens using USD. Usage: <token> <amount>. Example: `cbot buy eth 1.2`";
+    return "Command to buy tokens using USD. Usage: <token> <amount>, or <amount> <token>. Example: `!cbot buy eth 1.2` or `!cbot buy 1.2 eth`";
   }
 
   @Override
@@ -45,12 +46,20 @@ public class BuyCommand implements CbotCommand {
     try {
       amount = new BigDecimal(amountStr);
     } catch (NumberFormatException ex) {
-      return event
-          .getMessage()
-          .getChannel()
-          .flatMap(
-              channel ->
-                  channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
+      // OK, let's allow either syntax...
+      try {
+        symbol = parts[3].toLowerCase().trim();
+        amountStr = parts[2].toLowerCase().trim();
+
+        amount = new BigDecimal(amountStr);
+      } catch (NumberFormatException ex1) {
+        return event
+                .getMessage()
+                .getChannel()
+                .flatMap(
+                        channel ->
+                                channel.createMessage("Invalid amount. You gotsta use a proper number, yo"));
+      }
     }
 
     try {
@@ -58,6 +67,8 @@ public class BuyCommand implements CbotCommand {
 
       if (tx.isPresent()) {
         BigDecimal total = tx.get().getPurchasePrice().multiply(amount);
+        BigDecimal finalAmount = amount;
+        String finalSymbol = symbol;
         return event
             .getMessage()
             .getChannel()
@@ -65,9 +76,9 @@ public class BuyCommand implements CbotCommand {
                 channel ->
                     channel.createMessage(
                         "You have bought "
-                            + amount
+                            + finalAmount
                             + " of "
-                            + symbol
+                            + finalSymbol
                             + " for $"
                             + Constants.DECIMAL_FMT_DEFAULT.format(tx.get().getPurchasePrice())
                             + " per token, totalling $"
