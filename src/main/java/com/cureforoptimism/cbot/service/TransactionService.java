@@ -8,15 +8,14 @@ import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.domain.exceptions.InsufficientFundsException;
 import com.cureforoptimism.cbot.domain.exceptions.TransactionException;
 import com.cureforoptimism.cbot.repository.TransactionRepository;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor

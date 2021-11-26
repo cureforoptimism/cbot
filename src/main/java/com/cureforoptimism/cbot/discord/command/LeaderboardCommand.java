@@ -1,28 +1,24 @@
 package com.cureforoptimism.cbot.discord.command;
 
 import com.cureforoptimism.cbot.Constants;
+import com.cureforoptimism.cbot.Utilities;
 import com.cureforoptimism.cbot.domain.User;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.repository.ServerRepository;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
 import com.cureforoptimism.cbot.service.TransactionService;
 import com.cureforoptimism.cbot.service.UserService;
-import com.inamik.text.tables.GridTable;
 import com.inamik.text.tables.SimpleTable;
-import com.inamik.text.tables.grid.Border;
-import com.inamik.text.tables.grid.Util;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -87,14 +83,7 @@ public class LeaderboardCommand implements CbotCommand {
           .nextCell(Constants.DECIMAL_FMT_TWO_PRECISION.format(entry.getValue()));
     }
 
-    GridTable gridTable = output.toGrid();
-    gridTable = Border.of(Border.Chars.of('+', '-', '|')).apply(gridTable);
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    PrintStream printStream = new PrintStream(baos);
-    Util.print(gridTable, printStream);
-
-    String response = baos.toString(StandardCharsets.UTF_8);
-    String finalResponse = "```\n" + response + "\n```";
+    String finalResponse = "```\n" + Utilities.simpleTableToString(output) + "\n```";
     return event.getMessage().getChannel().flatMap(channel -> channel.createMessage(finalResponse));
   }
 }

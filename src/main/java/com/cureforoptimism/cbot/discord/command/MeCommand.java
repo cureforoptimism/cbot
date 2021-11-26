@@ -1,27 +1,23 @@
 package com.cureforoptimism.cbot.discord.command;
 
-import static com.inamik.text.tables.Cell.Functions.RIGHT_ALIGN;
-
 import com.cureforoptimism.cbot.Constants;
+import com.cureforoptimism.cbot.Utilities;
 import com.cureforoptimism.cbot.domain.Wallet;
 import com.cureforoptimism.cbot.service.CoinGeckoService;
 import com.cureforoptimism.cbot.service.TransactionService;
 import com.cureforoptimism.cbot.service.UserService;
-import com.inamik.text.tables.GridTable;
 import com.inamik.text.tables.SimpleTable;
-import com.inamik.text.tables.grid.Border;
-import com.inamik.text.tables.grid.Util;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
+import java.util.Map;
+
+import static com.inamik.text.tables.Cell.Functions.RIGHT_ALIGN;
 
 @Slf4j
 @Component
@@ -89,18 +85,9 @@ public class MeCommand implements CbotCommand {
             .applyToCell(RIGHT_ALIGN.withWidth(12));
       }
 
-      GridTable gridTable = output.toGrid();
-      gridTable = Border.of(Border.Chars.of('+', '-', '|')).apply(gridTable);
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      PrintStream printStream = new PrintStream(baos);
-      Util.print(gridTable, printStream);
-
-      String response;
-      response = baos.toString(StandardCharsets.UTF_8);
-
       String finalResponse =
           "```\n"
-              + response
+              + Utilities.simpleTableToString(output)
               + "\n```"
               + String.format(
                   "Total USD value: $%s. $%s paid in fees.",
