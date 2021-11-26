@@ -123,7 +123,7 @@ public class TransactionService {
             .user(user.get())
             .purchasePrice(token)
             .amount(fees.negate())
-            .symbol(symbol)
+            .symbol("usd")
             .transactionType(TransactionType.FEE)
             .build());
 
