@@ -30,7 +30,7 @@ public class AboutCommand implements CbotCommand {
 
   @Override
   public String getDescription() {
-    return "Shows some boring-ass details about coins, but you do you, boo.";
+    return "Shows some boring-ass details about coins, but you do you, boo. Usage <token>. Example: `!cbot about eth`";
   }
 
   @Override
