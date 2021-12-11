@@ -9,22 +9,18 @@ import com.litesoftwares.coingecko.domain.Coins.CoinFullData;
 import com.litesoftwares.coingecko.domain.Coins.CoinList;
 import com.litesoftwares.coingecko.domain.Shared.Ticker;
 import com.litesoftwares.coingecko.exception.CoinGeckoApiException;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -57,6 +53,54 @@ public class CoinGeckoService {
     resolveCollisions(symbol);
 
     return client.getCoinById(coinTickerToIdMap.get(symbol));
+  }
+
+  public Map<String, BigDecimal> getCurrentPrices(List<String> symbols) {
+    Map<String, BigDecimal> values = new HashMap<>();
+
+    for (String symbol : symbols) {
+      symbol = symbol.toLowerCase();
+
+      if (cache.containsKey(symbol)
+          && (!(System.currentTimeMillis() - cache.get(symbol).persisted.getTime()
+              >= Constants.COIN_GECKO_CACHE_EXPIRY))) {
+        values.put(symbol, cache.get(symbol).value);
+      }
+    }
+
+    if (values.size() > 0) {
+      symbols.removeAll(values.keySet());
+    }
+
+    boolean includeUsd = false;
+
+    Map<String, String> tickersToFetch = new HashMap<>();
+    for (String symbol : symbols) {
+      if (symbol.equalsIgnoreCase("usd")) {
+        includeUsd = true;
+        continue;
+      }
+
+      resolveCollisions(symbol);
+
+      tickersToFetch.put(coinTickerToIdMap.get(symbol), symbol);
+    }
+
+    String csv = String.join(",", tickersToFetch.keySet());
+
+    final var prices = client.getPrice(csv, Currency.USD);
+
+    Map<String, BigDecimal> mappedValues = new HashMap<>();
+    if (includeUsd) {
+      mappedValues.put("usd", BigDecimal.ONE);
+    }
+
+    for (Map.Entry<String, Map<String, Double>> price : prices.entrySet()) {
+      mappedValues.put(
+          tickersToFetch.get(price.getKey()), BigDecimal.valueOf(price.getValue().get("usd")));
+    }
+
+    return mappedValues;
   }
 
   @Retryable(value = CoinGeckoApiException.class)

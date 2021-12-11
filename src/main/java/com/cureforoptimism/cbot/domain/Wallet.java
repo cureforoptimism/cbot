@@ -29,14 +29,14 @@ public class Wallet {
 
   public Map<String, BigDecimal> getTokenValuesInUsd() {
     Map<String, BigDecimal> values = new HashMap<>();
+    Map<String, BigDecimal> prices =
+        coinGeckoService.getCurrentPrices(wallet.keySet().stream().toList());
 
     for (Map.Entry<String, BigDecimal> entry : wallet.entrySet()) {
       if (entry.getKey().equalsIgnoreCase("usd")) {
         values.put("usd", entry.getValue());
       } else {
-        values.put(
-            entry.getKey(),
-            coinGeckoService.getCurrentPrice(entry.getKey()).multiply(entry.getValue()));
+        values.put(entry.getKey(), prices.get(entry.getKey()).multiply(entry.getValue()));
       }
     }
 
